@@ -16,10 +16,13 @@ struct Args {
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
-    let info = read::read(args.infile)?;
+    let info = read::read(&args.infile)?;
+
+    println!("{} {}", args.infile, info.fmt_info);
+    println!();
 
     let mut name_longest = 0;
-    for i in &info {
+    for i in &info.sections {
         if i.name.len() > name_longest { name_longest = i.name.len(); }
     }
 
@@ -32,7 +35,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // For the table
     let mut other_color = false;
     
-    for i in &info {
+    for i in &info.sections {
         println!("   {}  {} \t {} \t {}", 
             {
                 let fmt = i.name.pad_to_width(name_longest);
@@ -43,8 +46,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                     fmt.bg_color(50, 50, 50).bold()
                 }
             },
-            format!("{:#x}", i.size).to_string().blue(), 
-            format!("{:#x}", i.align).to_string().cyan(),
+            format!("{:#x}", i.size).blue(), 
+            format!("{:#x}", i.align).cyan(),
             i.typ.yellow(),
         );
 
@@ -52,6 +55,28 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     println!("Syms:");
+
+    let mut sym_longest = 0;
+    for i in &info.symbols {
+        if i.name.len() > sym_longest { sym_longest = i.name.len(); }
+    }
+
+    // for more pretty backround color
+    sym_longest += 1;
+
+    println!("   {}  {} \t {}  {}", "Bind   ".bold(), "Typ".bold(), "Symbol".bold().pad_to_width(sym_longest), "Section".bold());
+
+    for sym in &info.symbols {
+        println!("   {}  {} \t {} {}",
+                sym.scope,
+                sym.typ,
+                sym.name.pad_to_width(sym_longest).bold().cyan(),
+                sym.section.yellow(),
+            );
+    }
+
+    println!();
+    println!("entry: {}", &info.entry);
 
     Ok(())
 }
