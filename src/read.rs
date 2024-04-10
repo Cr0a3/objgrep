@@ -1,5 +1,7 @@
-use std::{error::Error, fs};
-use object::{Object, ObjectSection, ObjectSymbol, SectionKind, SymbolKind, SymbolScope, SymbolSection};
+use object::{
+    File, Object, ObjectSection, ObjectSymbol, SectionKind, SymbolKind, SymbolScope, SymbolSection,
+};
+use std::error::Error;
 use PrintLib::colorize::Colorize;
 
 pub struct FileInfo {
@@ -24,11 +26,7 @@ pub struct SymbolData {
     pub section: String,
 }
 
-
-pub fn read(path: &String) -> Result< FileInfo, Box<dyn Error>> {
-    let binary_data = fs::read(path)?;
-    let file = object::File::parse(&*binary_data)?;
-
+pub fn read(file: &File) -> Result<FileInfo, Box<dyn Error>> {
     let mut ret = FileInfo {
         sections: vec![],
         symbols: vec![],
@@ -43,7 +41,6 @@ pub fn read(path: &String) -> Result< FileInfo, Box<dyn Error>> {
     };
 
     for section in file.sections() {
-
         let kind = match section.kind() {
             SectionKind::Unknown => "Unkown",
             SectionKind::Text => "Text",
@@ -63,16 +60,15 @@ pub fn read(path: &String) -> Result< FileInfo, Box<dyn Error>> {
             SectionKind::Note => "Note",
             SectionKind::Metadata => "Metadata",
             _ => "",
-        }.into();
+        }
+        .into();
 
-        ret.sections.push(
-            SectionData {
-                name: section.name()?.to_string(),
-                size: section.size(),
-                align: section.align(),
-                typ: kind,
-            }
-        )
+        ret.sections.push(SectionData {
+            name: section.name()?.to_string(),
+            size: section.size(),
+            align: section.align(),
+            typ: kind,
+        })
     }
 
     for sym in file.symbols() {
@@ -81,18 +77,21 @@ pub fn read(path: &String) -> Result< FileInfo, Box<dyn Error>> {
             SymbolKind::Null => "Null",
             SymbolKind::Text => "Func",
             SymbolKind::Data => "Data",
-            SymbolKind::Section => { continue; },
+            SymbolKind::Section => {
+                continue;
+            }
             SymbolKind::File => "File",
             SymbolKind::Label => "Label",
             SymbolKind::Tls => "Tls",
             _ => "",
-        }.into();
+        }
+        .into();
 
         let mut scope: String = match sym.scope() {
-            SymbolScope::Unknown =>     "Unknown ".bold().bg_red(),
+            SymbolScope::Unknown => "Unknown ".bold().bg_red(),
             SymbolScope::Compilation => "Private ".bold().bg_blue(),
-            SymbolScope::Linkage =>     "Public  ".bold().bg_magenta(),
-            SymbolScope::Dynamic =>     "Import  ".bold().bg_yellow(),
+            SymbolScope::Linkage => "Public  ".bold().bg_magenta(),
+            SymbolScope::Dynamic => "Import  ".bold().bg_yellow(),
         };
 
         if sym.is_global() {
@@ -108,18 +107,16 @@ pub fn read(path: &String) -> Result< FileInfo, Box<dyn Error>> {
             SymbolSection::Section(index) => {
                 let sec = file.section_by_index(index)?;
                 sec.name()?
-            },
+            }
             _ => "",
         };
 
-        ret.symbols.push(
-            SymbolData { 
-                typ: kind,
-                scope: scope,
-                name: sym.name()?.to_string(),
-                section: section.into(),
-            }
-        );
+        ret.symbols.push(SymbolData {
+            typ: kind,
+            scope: scope,
+            name: sym.name()?.to_string(),
+            section: section.into(),
+        });
     }
 
     Ok(ret)
