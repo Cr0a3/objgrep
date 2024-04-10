@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = "4.5.4"
-crossterm = "0.27.0"
+PrintLib = "1.5.2"
+clap = { version = "4.5.4", features = ["derive"] }
 object = "0.34.0"
-ratatui = { version = "0.26.1", features = ["crossterm", "widget-calendar"] }
+pad = "0.1.6"
