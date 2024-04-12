@@ -74,15 +74,15 @@ pub fn read(file: &File) -> Result<FileInfo, Box<dyn Error>> {
     for sym in file.symbols() {
         let kind: String = match sym.kind() {
             SymbolKind::Unknown => "Unknown",
-            SymbolKind::Null => "Null",
-            SymbolKind::Text => "Func",
-            SymbolKind::Data => "Data",
+            SymbolKind::Null => "Null  ",
+            SymbolKind::Text => "Func  ",
+            SymbolKind::Data => "Data  ",
             SymbolKind::Section => {
                 continue;
             }
-            SymbolKind::File => "File",
-            SymbolKind::Label => "Label",
-            SymbolKind::Tls => "Tls",
+            SymbolKind::File => "File  ",
+            SymbolKind::Label => "Label ",
+            SymbolKind::Tls => "Tls   ",
             _ => "",
         }
         .into();

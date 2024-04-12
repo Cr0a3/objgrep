@@ -86,14 +86,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!(
         "   {}  {} \t {}  {}",
         "Bind   ".bold(),
-        "Typ".bold(),
+        "Typ  ".bold(),
         "Symbol".bold().pad_to_width(sym_longest),
         "Section".bold()
     );
 
     for sym in &info.symbols {
         println!(
-            "   {}  {} \t {} {}",
+            "   {}  {} \t {}  {}",
             sym.scope,
             sym.typ,
             sym.name.pad_to_width(sym_longest).bold().cyan(),
@@ -105,7 +105,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("entry: {}", &info.entry);
 
     if args.disasm {
-        disasm::print(&file)?;
+        for sym in &info.symbols {
+            if sym.typ.replace(" ", "") == "Func" {
+                disasm::print_func(&file, &sym.name)?;
+            }
+        }
     }
 
     Ok(())
