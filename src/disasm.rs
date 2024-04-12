@@ -16,13 +16,9 @@ fn disasm(
     let mut ret: Vec<(String, String)> = vec![];
     let mut instr = vec![];
     let mut reloc_vec = vec![];
-
-    let mut last_index: i128 = 0;
     let mut index: i128 = 0;
 
     for instruction in disasm.iter() {
-        last_index = index;
-
         index += (instruction.bytes().len() - 1) as i128;
 
         let fmt_arry = {
@@ -36,21 +32,23 @@ fn disasm(
             fmt
         };
 
-        let instruction = format!("{}", instruction);
-        let fmt_instruction = instruction.split(':').collect::<Vec<&str>>()[1].to_string();
+        let instr_str = format!("{}", instruction);
+        let fmt_instruction = instr_str.split(':').collect::<Vec<&str>>()[1].to_string();
 
         let mut pushed_reloc_vec = false;
 
         for _reloc in relocs.iter() {
             let offset = _reloc.0 as i128 - pos_tuple.0 as i128;
 
-            if (last_index..index).contains(&offset) {
-                reloc_vec.push( format!("# {}", _reloc.2).magenta().bold());
+            if (index..(index + instruction.len() as i128)).contains(&offset) {
+                reloc_vec.push(format!("# {}", _reloc.2).magenta().bold());
                 pushed_reloc_vec = true;
             }
         }
-        
-        if !pushed_reloc_vec { reloc_vec.push("".into()); }
+
+        if !pushed_reloc_vec {
+            reloc_vec.push("".into());
+        }
 
         instr.push((fmt_arry, fmt_instruction))
     }
@@ -65,7 +63,14 @@ fn disasm(
     for index in 0..(instr.len()) {
         let inst = instr.get(index).unwrap();
 
-        ret.push(( (*inst.0).to_string(), format!("{}{}", inst.1.pad_to_width(longest + 1), reloc_vec.get(index).unwrap() )));
+        ret.push((
+            (*inst.0).to_string(),
+            format!(
+                "{}{}",
+                inst.1.pad_to_width(longest + 1),
+                reloc_vec.get(index).unwrap()
+            ),
+        ));
     }
 
     Ok(ret)
