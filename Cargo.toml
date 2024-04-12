@@ -1,7 +1,7 @@
 [package]
 name = "objgrep"
-version = "0.1.0"
-description = "A tool to read binarys"
+version = "1.0.0"
+description = "A tool to dump binarys"
 edition = "2021"
 license = "MIT"
 author = "Cr0a3"

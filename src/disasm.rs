@@ -8,7 +8,7 @@ use capstone::prelude::*;
 
 fn disasm(
     cs: &Capstone,
-    relocs: Vec<(u64, Relocation, &str)>,
+    relocs: Vec<(u64, Relocation, String)>,
     machine_code: &[u8],
     pos_tuple: (u64, u64),
 ) -> Result<Vec<(String, String)>, Box<dyn Error>> {
@@ -118,7 +118,7 @@ pub fn print_func(file: &File, name: &str) -> Result<(), Box<dyn Error>> {
         }
     };
 
-    let reloc_map: Vec<(u64, Relocation, &str)> = {
+    let reloc_map: Vec<(u64, Relocation, String)> = {
         let mut ret = vec![];
         for reloc in relocs {
             if !(adr..(size + adr)).contains(&reloc.0) {
@@ -130,7 +130,28 @@ pub fn print_func(file: &File, name: &str) -> Result<(), Box<dyn Error>> {
             match target {
                 RelocationTarget::Symbol(index) => {
                     let symbol = file.symbol_by_index(index)?;
-                    ret.push((reloc.0, reloc.1, symbol.name()?));
+
+                    let name = {
+                        let sym_name = symbol.name()?;
+
+                        if sym_name == "" {
+                            let sym_section =
+                                file.section_by_index(symbol.section_index().unwrap())?;
+                            let sym_section_name = sym_section.name()?;
+
+                            let offset = (reloc.0 as i128) - sym_section.address() as i128;
+
+                            format!(
+                                "{} + {:#X}",
+                                sym_section_name,
+                                (offset - (reloc.1.size() / 8) as i128)
+                            )
+                        } else {
+                            sym_name.to_string()
+                        }
+                    };
+
+                    ret.push((reloc.0, reloc.1, name));
                 }
                 _ => {
                     continue;
